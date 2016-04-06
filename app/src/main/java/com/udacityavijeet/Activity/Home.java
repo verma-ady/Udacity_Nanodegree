@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -42,17 +43,24 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Home extends AppCompatActivity {
 
     GridView gridView;
     ImageAdapter imageAdapter;
-    ContentMovie contentMovie[];
     final String BaseURL = "http://api.themoviedb.org/3/discover/movie";
     final String BaseIMG = "http://image.tmdb.org/t/p/original";
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    AlertDialog alertDialog;
+    ArrayList<ContentMovie> movieList;
+
+    private int visibleThreshold = 5;
+    private int currentPage = 1;
+    private int previousTotal = 0;
+    private boolean loading = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,27 +70,86 @@ public class Home extends AppCompatActivity {
         editor = sharedPreferences.edit();
         editor.putString("sort", "popularity.desc");
         editor.apply();
-
+        movieList = new ArrayList<>();
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
 
         // Use 1/8th of the available memory for this memory cache.
         final int cacheSize = maxMemory / 8;
         gridView = (GridView) findViewById(R.id.gridView_category);
 
+        createDialog();
+        gridScroll();
         SearchAPI searchAPI = new SearchAPI();
         searchAPI.execute();
+    }
+
+    private void gridScroll(){
+        gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                                 int visibleItemCount, int totalItemCount) {
+                if (loading) {
+                    if (totalItemCount > previousTotal) {
+                        loading = false;
+                        previousTotal = totalItemCount;
+                        currentPage++;
+                    }
+                }
+                if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
+                    // I load the next page of gigs using a background task,
+                    // but you can call any function here.
+                    SearchAPI searchAPI = new SearchAPI();
+                    searchAPI.execute();
+                    loading = true;
+                }
+            }
+        });
     }
 
     private void gridListener(){
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v( "MyApp", contentMovie[position].ID + " " + contentMovie[position].Title );
+                Log.v("MyApp", movieList.get(position).ID + " " + movieList.get(position).Title);
                 Intent intent = new Intent(Home.this, MovieResult.class );
-                intent.putExtra("ID", contentMovie[position].ID );
-                //startActivity(intent);
+                intent.putExtra("movie", movieList.get(position).ID);
+                startActivity(intent);
             }
         });
+    }
+
+    private void createDialog(){
+        final CharSequence s[] = {"Popularity", "Highest Rated"};
+        alertDialog = new AlertDialog.Builder(this)
+                .setTitle("Select Sort By")
+                .setSingleChoiceItems(s, 0, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (s[which].equals("Popularity")) {
+                            Log.v("MyApp", "Dialog:Popularity");
+                            editor.putString("sort", "popularity.desc");
+                            editor.apply();
+                            movieList.clear();
+                            SearchAPI searchAPI = new SearchAPI();
+                            searchAPI.execute();
+                            alertDialog.hide();
+                        } else if (s[which].equals("Highest Rated")) {
+                            Log.v("MyApp", "Dialog:Highest Rated");
+                            editor.putString("sort", "vote_average.desc");
+                            editor.apply();
+                            movieList.clear();
+                            SearchAPI searchAPI = new SearchAPI();
+                            searchAPI.execute();
+                            alertDialog.hide();
+                        }
+                    }
+                }).create();
+
     }
 
     @Override
@@ -96,23 +163,7 @@ public class Home extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.sort :
-                final CharSequence s[] = {"Popularity", "Highest Rated"};
-                AlertDialog alertDialog = new AlertDialog.Builder(this)
-                        .setTitle("Select Sort By")
-                        .setSingleChoiceItems(s, 0, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (s[which].equals("Popularity")) {
-                                    Log.v("MyApp", "Dialog:Popularity" );
-                                    editor.putString("sort", "popularity.desc");
-                                    editor.apply();
-                                } else if (s[which].equals("Highest Rated")) {
-                                    Log.v("MyApp", "Dialog:Highest Rated" );
-                                    editor.putString("sort", "popularity.desc");
-                                    editor.apply();
-                                }
-                            }
-                        }).create();
+                alertDialog.show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -130,8 +181,9 @@ public class Home extends AppCompatActivity {
             URL url = null;
             try {
 
-                Uri uri = Uri.parse(BaseURL).buildUpon().appendQueryParameter("sort_by", "popularity.desc")
-                        .appendQueryParameter("api_key", getString(R.string.api)).build();
+                Uri uri = Uri.parse(BaseURL).buildUpon().appendQueryParameter("sort_by", sharedPreferences.getString("sort", "popularity.desc"))
+                        .appendQueryParameter("api_key", getString(R.string.api))
+                        .appendQueryParameter("page", Integer.toString(currentPage)).build();
 
                 Log.v("MyApp", getClass().toString() + " " + uri.toString());
                 url = new URL(uri.toString());
@@ -199,14 +251,13 @@ public class Home extends AppCompatActivity {
                 JSONObject jsonObject = new JSONObject(strJSON);
                 JSONArray results = jsonObject.getJSONArray("results");
 
-                contentMovie = new ContentMovie[results.length()];
-
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
-                    contentMovie[i] = new ContentMovie(movie.getString("id"), movie.getString("title"), BaseIMG + movie.getString("poster_path"));
+                    movieList.add(new ContentMovie(movie.getString("id"), movie.getString("title"),
+                            BaseIMG + movie.getString("poster_path")));
                 }
 
-                imageAdapter = new ImageAdapter(getApplicationContext(), Arrays.asList(contentMovie));
+                imageAdapter = new ImageAdapter(getApplicationContext(), movieList);
                 gridView.setAdapter(imageAdapter);
                 gridListener();
 //                GetBitmap getBitmap = new GetBitmap();

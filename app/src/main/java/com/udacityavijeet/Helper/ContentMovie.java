@@ -13,14 +13,10 @@ public class ContentMovie {
 
     }
 
-    public ContentMovie(String vID, Bitmap vBitmap, String vTitle) {
+    public ContentMovie (String vID, String vTitle, String vURL ){
         ID = vID;
-        bitmap = vBitmap;
         Title = vTitle;
-    }
-
-    public ContentMovie(Bitmap vBitmap){
-        bitmap = vBitmap;
+        URL = vURL;
     }
 
     public void setBitmap(Bitmap Vbitmap ){
@@ -29,11 +25,5 @@ public class ContentMovie {
 
     public void setDrawable(Drawable vDrawable ){
         drawable = vDrawable;
-    }
-
-    public ContentMovie (String vID, String vTitle, String vURL ){
-        ID = vID;
-        Title = vTitle;
-        URL = vURL;
     }
 }

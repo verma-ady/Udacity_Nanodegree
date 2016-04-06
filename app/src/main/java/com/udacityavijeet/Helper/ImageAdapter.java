@@ -108,6 +108,8 @@ public class ImageAdapter extends ArrayAdapter<ContentMovie> {
             Log.v("MyApp", "Download:" + contentMovie.Title );
             isRequested.put(contentMovie.ID, true);
             downloadIMG(contentMovie.ID, contentMovie.URL, imageView, layoutW, layoutH );
+        } else {
+            downloadIMG(contentMovie.ID, contentMovie.URL, imageView, layoutW, layoutH );
         }
 
         return  v;
