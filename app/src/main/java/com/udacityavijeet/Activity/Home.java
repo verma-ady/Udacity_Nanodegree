@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.hardware.camera2.TotalCaptureResult;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
@@ -51,7 +52,7 @@ public class Home extends AppCompatActivity {
     GridView gridView;
     ImageAdapter imageAdapter;
     final String BaseURL = "http://api.themoviedb.org/3/discover/movie";
-    final String BaseIMG = "http://image.tmdb.org/t/p/original";
+    final String BaseIMG = "http://image.tmdb.org/t/p/w154";
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     AlertDialog alertDialog;
@@ -84,6 +85,7 @@ public class Home extends AppCompatActivity {
     }
 
     private void gridScroll(){
+
         gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -135,6 +137,7 @@ public class Home extends AppCompatActivity {
                             editor.putString("sort", "popularity.desc");
                             editor.apply();
                             movieList.clear();
+                            currentPage = 1;
                             SearchAPI searchAPI = new SearchAPI();
                             searchAPI.execute();
                             alertDialog.hide();
@@ -143,6 +146,7 @@ public class Home extends AppCompatActivity {
                             editor.putString("sort", "vote_average.desc");
                             editor.apply();
                             movieList.clear();
+                            currentPage = 1;
                             SearchAPI searchAPI = new SearchAPI();
                             searchAPI.execute();
                             alertDialog.hide();
