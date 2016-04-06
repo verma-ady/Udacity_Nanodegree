@@ -1,14 +1,21 @@
 package com.udacityavijeet.Activity;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.LruCache;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -44,11 +51,17 @@ public class Home extends AppCompatActivity {
     ContentMovie contentMovie[];
     final String BaseURL = "http://api.themoviedb.org/3/discover/movie";
     final String BaseIMG = "http://image.tmdb.org/t/p/original";
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        sharedPreferences = getApplicationContext().getSharedPreferences("Sort", getApplicationContext().MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        editor.putString("sort", "popularity.desc");
+        editor.apply();
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
 
@@ -64,10 +77,44 @@ public class Home extends AppCompatActivity {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v("MyApp", contentMovie[position].ID + " " + contentMovie[position].Title );
-
+                Log.v( "MyApp", contentMovie[position].ID + " " + contentMovie[position].Title );
+                Intent intent = new Intent(Home.this, MovieResult.class );
+                intent.putExtra("ID", contentMovie[position].ID );
+                //startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.home_page, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.sort :
+                final CharSequence s[] = {"Popularity", "Highest Rated"};
+                AlertDialog alertDialog = new AlertDialog.Builder(this)
+                        .setTitle("Select Sort By")
+                        .setSingleChoiceItems(s, 0, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (s[which].equals("Popularity")) {
+                                    Log.v("MyApp", "Dialog:Popularity" );
+                                    editor.putString("sort", "popularity.desc");
+                                    editor.apply();
+                                } else if (s[which].equals("Highest Rated")) {
+                                    Log.v("MyApp", "Dialog:Highest Rated" );
+                                    editor.putString("sort", "popularity.desc");
+                                    editor.apply();
+                                }
+                            }
+                        }).create();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public class SearchAPI extends AsyncTask<Void, Void, String> {
@@ -161,6 +208,7 @@ public class Home extends AppCompatActivity {
 
                 imageAdapter = new ImageAdapter(getApplicationContext(), Arrays.asList(contentMovie));
                 gridView.setAdapter(imageAdapter);
+                gridListener();
 //                GetBitmap getBitmap = new GetBitmap();
 //                getBitmap.execute();
                 Log.v("MyApp", getClass().toString() + " End of onPost ");
