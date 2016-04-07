@@ -78,10 +78,42 @@ public class Home extends AppCompatActivity {
         final int cacheSize = maxMemory / 8;
         gridView = (GridView) findViewById(R.id.gridView_category);
 
+
+
+        if(savedInstanceState==null){
+            Log.v("MyApp", "onCreate() null");
+            SearchAPI searchAPI = new SearchAPI();
+            searchAPI.execute();
+        } else {
+            Log.v("MyApp", "onCreate() not null");
+            int size = savedInstanceState.getInt("size");
+            movieList = savedInstanceState.getParcelableArrayList("movie");
+            imageAdapter = new ImageAdapter(getApplicationContext(), movieList);
+            gridView.setAdapter(imageAdapter);
+        }
+
         createDialog();
         gridScroll();
-        SearchAPI searchAPI = new SearchAPI();
-        searchAPI.execute();
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.v("MyApp", "onSaveInstanceState");
+        outState.putInt("size", movieList.size());
+        outState.putParcelableArrayList("movie", movieList );
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.v("MyApp", "onRestoreInstanceState");
+        int size = savedInstanceState.getInt("size");
+        movieList = savedInstanceState.getParcelableArrayList("movie");
+
+        imageAdapter = new ImageAdapter(getApplicationContext(), movieList);
+        gridView.setAdapter(imageAdapter);
     }
 
     private void gridScroll(){
@@ -117,9 +149,9 @@ public class Home extends AppCompatActivity {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v("MyApp", movieList.get(position).ID + " " + movieList.get(position).Title);
+                Log.v("MyApp", movieList.get(position).details[0] + " " + movieList.get(position).details[1]);
                 Intent intent = new Intent(Home.this, MovieResult.class );
-                intent.putExtra("movie", movieList.get(position).ID);
+                intent.putExtra("movie", movieList.get(position).details[0]);
                 startActivity(intent);
             }
         });

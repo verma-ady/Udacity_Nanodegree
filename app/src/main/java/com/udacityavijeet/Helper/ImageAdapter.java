@@ -97,19 +97,19 @@ public class ImageAdapter extends ArrayAdapter<ContentMovie> {
         imageView.setLayoutParams(params);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         textView = (TextView) v.findViewById(R.id.gridViewLayoutText );
-        textView.setText(contentMovie.Title);
+        textView.setText(contentMovie.details[1]);
 
-        Bitmap bitmap = getBitmapFromMemCache(contentMovie.ID);
+        Bitmap bitmap = getBitmapFromMemCache(contentMovie.details[0]);
         if (bitmap != null) {
-            Log.v("MyApp", "Cache:" + contentMovie.Title );
+            Log.v("MyApp", "Cache:" + contentMovie.details[1] );
             imageView.setImageBitmap(bitmap);
-        } else if( isRequested.get(contentMovie.ID)==null ) {
+        } else if( isRequested.get(contentMovie.details[0])==null ) {
             //imageView.setImageResource(R.drawable.image_placeholder);
-            Log.v("MyApp", "Download:" + contentMovie.Title );
-            isRequested.put(contentMovie.ID, true);
-            downloadIMG(contentMovie.ID, contentMovie.URL, imageView, layoutW, layoutH );
+            Log.v("MyApp", "Download:" + contentMovie.details[1] );
+            isRequested.put(contentMovie.details[0], true);
+            downloadIMG(contentMovie.details[0], contentMovie.details[2], imageView, layoutW, layoutH );
         } else {
-            downloadIMG(contentMovie.ID, contentMovie.URL, imageView, layoutW, layoutH );
+            downloadIMG(contentMovie.details[0], contentMovie.details[2], imageView, layoutW, layoutH );
         }
 
         return  v;
@@ -147,7 +147,4 @@ public class ImageAdapter extends ArrayAdapter<ContentMovie> {
             }
         });
     }
-
-
-
 }

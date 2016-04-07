@@ -2,21 +2,30 @@ package com.udacityavijeet.Helper;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class ContentMovie {
+public class ContentMovie implements Parcelable{
 
-    public String ID, Title, URL;
+    public String details[] ;//ID, Title, URL;
     public Bitmap bitmap;
     public Drawable drawable;
 
     public ContentMovie(){
+        bitmap = null;
+    }
 
+    public ContentMovie(Parcel in ){
+        bitmap = null;
+        in.readStringArray(details);
     }
 
     public ContentMovie (String vID, String vTitle, String vURL ){
-        ID = vID;
-        Title = vTitle;
-        URL = vURL;
+        details = new String[3];
+        details[0] = vID;
+        details[1] = vTitle;
+        details[2] = vURL;
+        bitmap = null;
     }
 
     public void setBitmap(Bitmap Vbitmap ){
@@ -25,5 +34,25 @@ public class ContentMovie {
 
     public void setDrawable(Drawable vDrawable ){
         drawable = vDrawable;
+    }
+
+    public static final Parcelable.Creator<ContentMovie> CREATOR = new Parcelable.Creator<ContentMovie>() {
+        public ContentMovie createFromParcel(Parcel in) {
+            return new ContentMovie(in);
+        }
+
+        public ContentMovie[] newArray(int size) {
+            return new ContentMovie[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeStringArray(details);
     }
 }
