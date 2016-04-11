@@ -20,11 +20,15 @@ public class ContentMovie implements Parcelable{
         in.readStringArray(details);
     }
 
-    public ContentMovie (String vID, String vTitle, String vURL ){
-        details = new String[3];
+    public ContentMovie (String vID, String vTitle, String vURL,  String vSynopsys, String vRating, String vRelease, String vBackDrop  ){
+        details = new String[7];
         details[0] = vID;
         details[1] = vTitle;
         details[2] = vURL;
+        details[3] = vSynopsys;
+        details[4] = vRating;
+        details[5] = vRelease;
+        details[6] = vBackDrop;
         bitmap = null;
     }
 

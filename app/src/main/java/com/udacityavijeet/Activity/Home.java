@@ -53,6 +53,7 @@ public class Home extends AppCompatActivity {
     ImageAdapter imageAdapter;
     final String BaseURL = "http://api.themoviedb.org/3/discover/movie";
     final String BaseIMG = "http://image.tmdb.org/t/p/w154";
+    final String BaseIMG2 = "http://image.tmdb.org/t/p/w500";
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     AlertDialog alertDialog;
@@ -151,7 +152,13 @@ public class Home extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.v("MyApp", movieList.get(position).details[0] + " " + movieList.get(position).details[1]);
                 Intent intent = new Intent(Home.this, MovieResult.class );
-                intent.putExtra("movie", movieList.get(position).details[0]);
+                intent.putExtra("movieID", movieList.get(position).details[0]);
+                intent.putExtra("movieTitle", movieList.get(position).details[1]);
+                intent.putExtra("moviePoster", movieList.get(position).details[2]);
+                intent.putExtra("movieSynopsis", movieList.get(position).details[3]);
+                intent.putExtra("movieUR", movieList.get(position).details[4]);
+                intent.putExtra("movieRD", movieList.get(position).details[5]);
+                intent.putExtra("movieBackdrop", movieList.get(position).details[6]);
                 startActivity(intent);
             }
         });
@@ -289,8 +296,15 @@ public class Home extends AppCompatActivity {
 
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
-                    movieList.add(new ContentMovie(movie.getString("id"), movie.getString("title"),
-                            BaseIMG + movie.getString("poster_path")));
+                    movieList.add(new ContentMovie(
+                            movie.getString("id"),
+                            movie.getString("title"),
+                            BaseIMG + movie.getString("poster_path"),
+                            movie.getString("overview"),
+                            movie.getString("vote_average"),
+                            movie.getString("release_date"),
+                            BaseIMG2 + movie.getString("backdrop_path")
+                    ));
                 }
 
                 imageAdapter = new ImageAdapter(getApplicationContext(), movieList);
