@@ -20,6 +20,9 @@
         </activity>
         <activity android:name=".Activity.MovieResult" >
         </activity>
+        <activity android:name=".Activity.MovieData"
+            android:parentActivityName=".Activity.Home">
+        </activity>
     </application>
 
 </manifest>

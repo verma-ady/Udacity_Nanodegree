@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.Menu;
@@ -68,6 +69,12 @@ public class Home extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
+
         sharedPreferences = getApplicationContext().getSharedPreferences("Sort", getApplicationContext().MODE_PRIVATE);
         editor = sharedPreferences.edit();
         editor.putString("sort", "popularity.desc");
@@ -151,7 +158,7 @@ public class Home extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.v("MyApp", movieList.get(position).details[0] + " " + movieList.get(position).details[1]);
-                Intent intent = new Intent(Home.this, MovieResult.class );
+                Intent intent = new Intent(Home.this, MovieData.class );
                 intent.putExtra("movieID", movieList.get(position).details[0]);
                 intent.putExtra("movieTitle", movieList.get(position).details[1]);
                 intent.putExtra("moviePoster", movieList.get(position).details[2]);

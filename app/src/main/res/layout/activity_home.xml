@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Home">
 
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:id="@+id/getIMG"/>
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
     <GridView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,6 +22,7 @@
         android:numColumns="2"
         android:stretchMode="columnWidth"
         android:gravity="center_horizontal"
-        android:elevation="5dp"/>
+        android:elevation="5dp"
+        android:layout_below="@+id/toolbar"/>
 
 </RelativeLayout>
