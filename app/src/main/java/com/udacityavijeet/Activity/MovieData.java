@@ -19,28 +19,37 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.StringRequest;
 import com.udacityavijeet.Helper.AppController;
+import com.udacityavijeet.Helper.Keys;
 import com.udacityavijeet.R;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MovieData extends AppCompatActivity {
 
     ImageView poster, backdrop;
     TextView title, overview, userR, releaseD;
-
+    final private String  tag_string_req = "string_req";
+    final private String BASE_URL = "http://api.themoviedb.org/3/movie";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_data);
-
-
         String name = getIntent().getStringExtra("movieTitle");
         String synopsis = getIntent().getStringExtra("movieSynopsis");
         String rating = getIntent().getStringExtra("movieUR");
         String backdropURL = getIntent().getStringExtra("movieBackdrop");
         String posterURL = getIntent().getStringExtra("moviePoster");
         String release = getIntent().getStringExtra("movieRD");
+        String movieID = getIntent().getStringExtra("movieID");
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -74,17 +83,48 @@ public class MovieData extends AppCompatActivity {
         overview.setText(synopsis);
         userR.setText("Rating : " + rating);
         releaseD.setText("Release Date : " + release);
-        fabListener((FloatingActionButton) findViewById(R.id.fab_play));
+        Uri uri = Uri.parse(BASE_URL).buildUpon().appendPath(movieID)
+                .appendQueryParameter("api_key", Keys.TMDB_KEY)
+                .appendQueryParameter("append_to_response", "videos" ).build();
+        getMovieData(uri.toString());
     }
 
-    private void fabListener(FloatingActionButton fab){
+    private void fabListener(FloatingActionButton fab, final String key){
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 //                Toast.makeText(getApplicationContext(), "Trailer to be added in Stage 2", Toast.LENGTH_LONG).show();
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=cxLG2wtE7TM")));
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + key )));
             }
         });
+    }
+
+    private void getMovieData (final String url ){
+        StringRequest strReq = new StringRequest(Request.Method.GET,
+                url, new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                Log.d("MyApp", response.toString());
+                try {
+                    JSONObject movieData = new JSONObject(response.toString());
+                    JSONArray result = movieData.getJSONObject("videos").getJSONArray("results");
+                    String YTkey = result.getJSONObject(0).getString("key");
+                    fabListener((FloatingActionButton) findViewById(R.id.fab_play), YTkey);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d("MyApp", "Error: " + error.getMessage());
+            }
+        });
+
+// Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
 
     private void downloadIMG (final String url, final ImageView imageViewIMG, final int layoutW, final int layoutH ){

@@ -30,6 +30,7 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.udacityavijeet.Helper.ContentMovie;
 import com.udacityavijeet.Helper.ImageAdapter;
+import com.udacityavijeet.Helper.Keys;
 import com.udacityavijeet.R;
 
 import org.json.JSONArray;
@@ -232,7 +233,7 @@ public class Home extends AppCompatActivity {
             try {
 
                 Uri uri = Uri.parse(BaseURL).buildUpon().appendQueryParameter("sort_by", sharedPreferences.getString("sort", "popularity.desc"))
-                        .appendQueryParameter("api_key", getString(R.string.api))
+                        .appendQueryParameter("api_key", Keys.TMDB_KEY)
                         .appendQueryParameter("page", Integer.toString(currentPage)).build();
 
                 Log.v("MyApp", getClass().toString() + " " + uri.toString());

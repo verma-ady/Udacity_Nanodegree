@@ -55,15 +55,6 @@ public class ImageAdapter extends ArrayAdapter<ContentMovie> {
 
         isRequested = new HashMap<>();
 
-//        mMemoryCacheT = new android.support.v4.util.LruCache<String, String>(cacheSize) {
-//            @Override
-//            protected int sizeOf(String key, String value) {
-//                // The cache size will be measured in kilobytes rather than
-//                // number of items.
-//                return value.getBytes() / 1024;
-//            }
-//        };
-
     }
 
     @Override
@@ -85,7 +76,7 @@ public class ImageAdapter extends ArrayAdapter<ContentMovie> {
 //            convertView = LayoutInflater.from(getContext()).inflate(
 //                    R.layout.grid_view_layout, parent, false);
 
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(     Context.LAYOUT_INFLATER_SERVICE );
+            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE );
             v = inflater.inflate(R.layout.grid_view_layout, parent, false);
 //        } else {
 //            v = (View) convertView;
