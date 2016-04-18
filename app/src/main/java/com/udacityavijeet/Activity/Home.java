@@ -159,6 +159,7 @@ public class Home extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.v("MyApp", movieList.get(position).details[0] + " " + movieList.get(position).details[1]);
+
                 Intent intent = new Intent(Home.this, MovieData.class );
                 intent.putExtra("movieID", movieList.get(position).details[0]);
                 intent.putExtra("movieTitle", movieList.get(position).details[1]);

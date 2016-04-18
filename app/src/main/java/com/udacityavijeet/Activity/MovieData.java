@@ -9,11 +9,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -26,6 +32,7 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.udacityavijeet.Helper.AppController;
+import com.udacityavijeet.Helper.ContentMovie;
 import com.udacityavijeet.Helper.Keys;
 import com.udacityavijeet.R;
 
@@ -33,23 +40,32 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MovieData extends AppCompatActivity {
 
     ImageView poster, backdrop;
     TextView title, overview, userR, releaseD;
     final private String  tag_string_req = "string_req";
     final private String BASE_URL = "http://api.themoviedb.org/3/movie";
+    ContentMovie contentMovie;
+    RVAdapterTrailers rvAdapterTrailers;
+    RecyclerView recyclerView;
+    LinearLayoutManager linearLayoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_data);
-        String name = getIntent().getStringExtra("movieTitle");
-        String synopsis = getIntent().getStringExtra("movieSynopsis");
-        String rating = getIntent().getStringExtra("movieUR");
-        String backdropURL = getIntent().getStringExtra("movieBackdrop");
-        String posterURL = getIntent().getStringExtra("moviePoster");
-        String release = getIntent().getStringExtra("movieRD");
-        String movieID = getIntent().getStringExtra("movieID");
+        contentMovie = new ContentMovie();
+        contentMovie.details[1] = getIntent().getStringExtra("movieTitle");
+        contentMovie.details[3] = getIntent().getStringExtra("movieSynopsis");
+        contentMovie.details[4] = getIntent().getStringExtra("movieUR");
+        contentMovie.details[6] = getIntent().getStringExtra("movieBackdrop");
+        contentMovie.details[2] = getIntent().getStringExtra("moviePoster");
+        contentMovie.details[5] = getIntent().getStringExtra("movieRD");
+        contentMovie.details[0] = getIntent().getStringExtra("movieID");
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -58,7 +74,7 @@ public class MovieData extends AppCompatActivity {
 
         CollapsingToolbarLayout collapsingToolbar =
                 (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbar.setTitle(name);
+        collapsingToolbar.setTitle(contentMovie.details[1]);
 
         WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
@@ -72,31 +88,29 @@ public class MovieData extends AppCompatActivity {
 //        poster = (ImageView) findViewById(R.id.imageMV_Poster);
         backdrop = (ImageView) findViewById(R.id.imageMV_backdrop);
 //        downloadIMG(posterURL, poster, layoutW, layoutH);
-        downloadIMG(backdropURL, backdrop, layoutW, layoutH);
+        downloadIMG(contentMovie.details[6], backdrop, layoutW, layoutH);
+//
+////        title = (TextView) findViewById(R.id.textMV_Name);
+//        overview = (TextView) findViewById(R.id.textMV_Synopsis);
+//        userR = (TextView) findViewById(R.id.textMV_UserR);
+//        releaseD = (TextView) findViewById(R.id.textMV_RD);
+//
+////        title.setText(name);
+//        overview.setText(contentMovie.details[3]);
+//        userR.setText("Rating : " + contentMovie.details[4]);
+//        releaseD.setText("Release Date : " + contentMovie.details[5]);
 
-//        title = (TextView) findViewById(R.id.textMV_Name);
-        overview = (TextView) findViewById(R.id.textMV_Synopsis);
-        userR = (TextView) findViewById(R.id.textMV_UserR);
-        releaseD = (TextView) findViewById(R.id.textMV_RD);
+        recyclerView = (RecyclerView) findViewById(R.id.recycleTrailer);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setNestedScrollingEnabled(true);
+        linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(linearLayoutManager);
 
-//        title.setText(name);
-        overview.setText(synopsis);
-        userR.setText("Rating : " + rating);
-        releaseD.setText("Release Date : " + release);
-        Uri uri = Uri.parse(BASE_URL).buildUpon().appendPath(movieID)
+        Uri uri = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0])
                 .appendQueryParameter("api_key", Keys.TMDB_KEY)
                 .appendQueryParameter("append_to_response", "videos" ).build();
         getMovieData(uri.toString());
-    }
 
-    private void fabListener(FloatingActionButton fab, final String key){
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Toast.makeText(getApplicationContext(), "Trailer to be added in Stage 2", Toast.LENGTH_LONG).show();
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + key )));
-            }
-        });
     }
 
     private void getMovieData (final String url ){
@@ -109,9 +123,17 @@ public class MovieData extends AppCompatActivity {
                 try {
                     JSONObject movieData = new JSONObject(response.toString());
                     JSONArray result = movieData.getJSONObject("videos").getJSONArray("results");
-                    String YTkey = result.getJSONObject(0).getString("key");
-                    fabListener((FloatingActionButton) findViewById(R.id.fab_play), YTkey);
+                    int len = result.length();
+                    for (int i=0; i<len ; i++ ){
+                        contentMovie.trailerKey.add(result.getJSONObject(i).getString("key"));
+                        contentMovie.trailerName.add(result.getJSONObject(i).getString("name"));
+                        Log.d("MyApp", "Key:" + contentMovie.trailerKey.get(i) + " Name:" + contentMovie.trailerName.get(i));
+                    }
+                    rvAdapterTrailers = new RVAdapterTrailers(contentMovie.trailerName);
+                    recyclerView.setAdapter(rvAdapterTrailers);
+//                    fabListener((FloatingActionButton) findViewById(R.id.fab_play), YTkey);
                 } catch (JSONException e) {
+                    Log.e("MyApp","getMovieData VolleyError" + e.toString() );
                     e.printStackTrace();
                 }
             }
@@ -123,7 +145,7 @@ public class MovieData extends AppCompatActivity {
             }
         });
 
-// Adding request to request queue
+        // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
 
@@ -147,4 +169,44 @@ public class MovieData extends AppCompatActivity {
             }
         });
     }
+
+    public class RVAdapterTrailers extends RecyclerView.Adapter<RVAdapterTrailers.CardViewHolder> {
+        private ArrayList<String> Name;
+        public RVAdapterTrailers ( ArrayList<String> vName){
+            Log.v("MyApp", "RVAdapterTrailers");
+            Name = vName;
+        }
+
+        @Override
+        public RVAdapterTrailers.CardViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_trailer, parent, false );
+            CardViewHolder cardViewHolder = new CardViewHolder( view );
+            return cardViewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(RVAdapterTrailers.CardViewHolder holder, int position) {
+            Log.v("MyApp", "RVAdapterTrailers onBindViewHolder" + position );
+            holder.text.setText(Name.get(position));
+            holder.image.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_play_circle_filled_black_24dp));
+        }
+
+        @Override
+        public int getItemCount() {
+            return Name.size();
+        }
+
+        public class CardViewHolder extends RecyclerView.ViewHolder {
+            CardView cardView;
+            TextView text;
+            ImageView image;
+            public CardViewHolder(View itemView) {
+                super(itemView);
+                cardView = (CardView) itemView.findViewById(R.id.cardTrailer);
+                text = (TextView) itemView.findViewById(R.id.textTrailer);
+                image = (ImageView) itemView.findViewById(R.id.imageTrailer);
+            }
+        }
+    }
+
 }
