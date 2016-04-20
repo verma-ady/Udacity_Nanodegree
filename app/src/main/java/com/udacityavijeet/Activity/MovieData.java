@@ -1,14 +1,11 @@
 package com.udacityavijeet.Activity;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -22,9 +19,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -41,7 +37,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MovieData extends AppCompatActivity {
 
@@ -53,6 +48,7 @@ public class MovieData extends AppCompatActivity {
     RVAdapterTrailers rvAdapterTrailers;
     RecyclerView recyclerView;
     LinearLayoutManager linearLayoutManager;
+    CardView card;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,22 +85,22 @@ public class MovieData extends AppCompatActivity {
         backdrop = (ImageView) findViewById(R.id.imageMV_backdrop);
 //        downloadIMG(posterURL, poster, layoutW, layoutH);
         downloadIMG(contentMovie.details[6], backdrop, layoutW, layoutH);
-//
-////        title = (TextView) findViewById(R.id.textMV_Name);
-//        overview = (TextView) findViewById(R.id.textMV_Synopsis);
-//        userR = (TextView) findViewById(R.id.textMV_UserR);
-//        releaseD = (TextView) findViewById(R.id.textMV_RD);
-//
-////        title.setText(name);
-//        overview.setText(contentMovie.details[3]);
-//        userR.setText("Rating : " + contentMovie.details[4]);
-//        releaseD.setText("Release Date : " + contentMovie.details[5]);
 
+        overview = (TextView) findViewById(R.id.textMV_Synopsis);
+        userR = (TextView) findViewById(R.id.textMV_UserR);
+        releaseD = (TextView) findViewById(R.id.textMV_RD);
+
+        overview.setText(contentMovie.details[3]);
+        userR.setText("Rating : " + contentMovie.details[4]);
+        releaseD.setText("Release Date : " + contentMovie.details[5]);
+
+        card = (CardView) findViewById(R.id.cardTrailer);
         recyclerView = (RecyclerView) findViewById(R.id.recycleTrailer);
         recyclerView.setHasFixedSize(true);
         recyclerView.setNestedScrollingEnabled(true);
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(linearLayoutManager);
+
 
         Uri uri = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0])
                 .appendQueryParameter("api_key", Keys.TMDB_KEY)
@@ -129,9 +125,13 @@ public class MovieData extends AppCompatActivity {
                         contentMovie.trailerName.add(result.getJSONObject(i).getString("name"));
                         Log.d("MyApp", "Key:" + contentMovie.trailerKey.get(i) + " Name:" + contentMovie.trailerName.get(i));
                     }
+
                     rvAdapterTrailers = new RVAdapterTrailers(contentMovie.trailerName);
+//                    int height = card.getLayoutParams().height;
+//                    recyclerView.setLayoutParams(new LinearLayout.LayoutParams
+//                            (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT ));
+//                    card.setVisibility(View.INVISIBLE);
                     recyclerView.setAdapter(rvAdapterTrailers);
-//                    fabListener((FloatingActionButton) findViewById(R.id.fab_play), YTkey);
                 } catch (JSONException e) {
                     Log.e("MyApp","getMovieData VolleyError" + e.toString() );
                     e.printStackTrace();
