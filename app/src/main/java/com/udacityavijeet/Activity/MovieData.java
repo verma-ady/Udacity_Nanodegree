@@ -1,6 +1,7 @@
 package com.udacityavijeet.Activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
@@ -30,6 +31,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.udacityavijeet.Helper.AppController;
 import com.udacityavijeet.Helper.ContentMovie;
 import com.udacityavijeet.Helper.Keys;
+import com.udacityavijeet.Helper.RecyclerItemClickListener;
 import com.udacityavijeet.R;
 
 import org.json.JSONArray;
@@ -106,7 +108,18 @@ public class MovieData extends AppCompatActivity {
                 .appendQueryParameter("api_key", Keys.TMDB_KEY)
                 .appendQueryParameter("append_to_response", "videos" ).build();
         getMovieData(uri.toString());
+        RecyclerItemTouchListener(recyclerView);
 
+    }
+
+    private void RecyclerItemTouchListener(RecyclerView recyclerView){
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(("http://www.youtube.com/watch?v=" + contentMovie.trailerKey.get(position))));
+                startActivity(intent);
+            }
+        }));
     }
 
     private void getMovieData (final String url ){
@@ -127,10 +140,6 @@ public class MovieData extends AppCompatActivity {
                     }
 
                     rvAdapterTrailers = new RVAdapterTrailers(contentMovie.trailerName);
-//                    int height = card.getLayoutParams().height;
-//                    recyclerView.setLayoutParams(new LinearLayout.LayoutParams
-//                            (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT ));
-//                    card.setVisibility(View.INVISIBLE);
                     recyclerView.setAdapter(rvAdapterTrailers);
                 } catch (JSONException e) {
                     Log.e("MyApp","getMovieData VolleyError" + e.toString() );
