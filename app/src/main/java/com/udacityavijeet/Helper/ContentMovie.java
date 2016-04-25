@@ -11,20 +11,26 @@ import java.util.List;
 public class ContentMovie implements Parcelable{
 
     public String details[] ;//ID, Title, URL;
-    public ArrayList<String> trailerKey, trailerName;
+    public ArrayList<String> trailerKey, trailerName, reviewBy, reviewText;
     public Bitmap bitmap;
     public Drawable drawable;
 
     public ContentMovie(){
         trailerKey = new ArrayList<>();
         trailerName = new ArrayList<>();
+        reviewBy = new ArrayList<>();
+        reviewText = new ArrayList<>();
         details = new String[7];
         bitmap = null;
     }
 
     public ContentMovie(Parcel in ){
+        //add them and extract them from parcel
         trailerKey = new ArrayList<>();
         trailerName = new ArrayList<>();
+        reviewBy = new ArrayList<>();
+        reviewText = new ArrayList<>();
+
         bitmap = null;
         in.readStringArray(details);
     }

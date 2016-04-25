@@ -129,10 +129,28 @@
 
             </android.support.v7.widget.CardView>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:background="#000000"/>
+
             <android.support.v7.widget.RecyclerView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/recycleTrailer"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:elevation="10dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:background="#000000"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/recycleReview"
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp"
                 android:elevation="10dp" />

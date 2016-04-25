@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.CardView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    android:id="@+id/cardReview"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        style="@style/Widget.CardContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:id="@+id/textReviewBy"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textReview"
+            android:padding="5dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+
+    </LinearLayout>
+
+</android.support.v7.widget.CardView>

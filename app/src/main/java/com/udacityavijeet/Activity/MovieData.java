@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -46,10 +45,13 @@ public class MovieData extends AppCompatActivity {
     TextView title, overview, userR, releaseD;
     final private String  tag_string_req = "string_req";
     final private String BASE_URL = "http://api.themoviedb.org/3/movie";
+    final private String REVIEW = "reviews";
     ContentMovie contentMovie;
     RVAdapterTrailers rvAdapterTrailers;
-    RecyclerView recyclerView;
-    LinearLayoutManager linearLayoutManager;
+    RVAdapterReview rvAdapterReview;
+    RecyclerView recyclerViewTrailers, recyclerViewReview;
+
+    LinearLayoutManager linearLayoutManagerTrailers, linearLayoutManagerReview;
     CardView card;
 
     @Override
@@ -97,19 +99,30 @@ public class MovieData extends AppCompatActivity {
         releaseD.setText("Release Date : " + contentMovie.details[5]);
 
         card = (CardView) findViewById(R.id.cardTrailer);
-        recyclerView = (RecyclerView) findViewById(R.id.recycleTrailer);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setNestedScrollingEnabled(true);
-        linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerViewTrailers = (RecyclerView) findViewById(R.id.recycleTrailer);
+        recyclerViewTrailers.setHasFixedSize(true);
+        recyclerViewTrailers.setNestedScrollingEnabled(true);
+        linearLayoutManagerTrailers = new LinearLayoutManager(getApplicationContext());
+        recyclerViewTrailers.setLayoutManager(linearLayoutManagerTrailers);
 
 
-        Uri uri = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0])
+        recyclerViewReview = (RecyclerView) findViewById(R.id.recycleReview);
+        recyclerViewReview.setHasFixedSize(true);
+        recyclerViewReview.setNestedScrollingEnabled(true);
+        linearLayoutManagerReview = new LinearLayoutManager(getApplicationContext());
+        recyclerViewReview.setLayoutManager(linearLayoutManagerReview);
+
+        // to get trailers
+        Uri uriTrailers = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0])
                 .appendQueryParameter("api_key", Keys.TMDB_KEY)
                 .appendQueryParameter("append_to_response", "videos" ).build();
-        getMovieData(uri.toString());
-        RecyclerItemTouchListener(recyclerView);
+        getMovieTrailers(uriTrailers.toString());
+        RecyclerItemTouchListener(recyclerViewTrailers);
 
+        //to get review
+        Uri uriReview = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0]).appendPath(REVIEW)
+                .appendQueryParameter("api_key", Keys.TMDB_KEY).build();
+        getMovieReview(uriReview.toString());
     }
 
     private void RecyclerItemTouchListener(RecyclerView recyclerView){
@@ -122,7 +135,7 @@ public class MovieData extends AppCompatActivity {
         }));
     }
 
-    private void getMovieData (final String url ){
+    private void getMovieTrailers(final String url){
         StringRequest strReq = new StringRequest(Request.Method.GET,
                 url, new Response.Listener<String>() {
 
@@ -140,9 +153,44 @@ public class MovieData extends AppCompatActivity {
                     }
 
                     rvAdapterTrailers = new RVAdapterTrailers(contentMovie.trailerName);
-                    recyclerView.setAdapter(rvAdapterTrailers);
+                    recyclerViewTrailers.setAdapter(rvAdapterTrailers);
                 } catch (JSONException e) {
-                    Log.e("MyApp","getMovieData VolleyError" + e.toString() );
+                    Log.e("MyApp","getMovieTrailers VolleyError" + e.toString() );
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d("MyApp", "Error: " + error.getMessage());
+            }
+        });
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    private void getMovieReview(final String url){
+        StringRequest strReq = new StringRequest(Request.Method.GET,
+                url, new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                Log.d("MyApp", response.toString());
+                try {
+                    JSONObject movieData = new JSONObject(response.toString());
+                    JSONArray result = movieData.getJSONArray("results");
+                    int len = result.length();
+                    for (int i=0; i<len ; i++ ){
+                        contentMovie.reviewBy.add(result.getJSONObject(i).getString("author"));
+                        contentMovie.reviewText.add(result.getJSONObject(i).getString("content"));
+                    }
+
+                    rvAdapterReview = new RVAdapterReview(contentMovie.reviewBy, contentMovie.reviewText);
+                    recyclerViewReview.setAdapter(rvAdapterReview);
+                } catch (JSONException e) {
+                    Log.e("MyApp","getMovieReview VolleyError" + e.toString() );
                     e.printStackTrace();
                 }
             }
@@ -214,6 +262,46 @@ public class MovieData extends AppCompatActivity {
                 cardView = (CardView) itemView.findViewById(R.id.cardTrailer);
                 text = (TextView) itemView.findViewById(R.id.textTrailer);
                 image = (ImageView) itemView.findViewById(R.id.imageTrailer);
+            }
+        }
+    }
+
+    public class RVAdapterReview extends RecyclerView.Adapter<RVAdapterReview.CardViewHolder> {
+        private ArrayList<String> Name, Review;
+
+        public RVAdapterReview(ArrayList<String> vName, ArrayList<String> vReview){
+            Log.v("MyApp", "RVAdapterTrailers");
+            Name = vName;
+            Review = vReview;
+        }
+
+        @Override
+        public RVAdapterReview.CardViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_review, parent, false );
+            CardViewHolder cardViewHolder = new CardViewHolder( view );
+            return cardViewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(RVAdapterReview.CardViewHolder holder, int position) {
+            Log.v("MyApp", "RVAdapterReview onBindViewHolder" + position);
+            holder.textBy.setText(Name.get(position));
+            holder.textReview.setText(Review.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return Name.size();
+        }
+
+        public class CardViewHolder extends RecyclerView.ViewHolder {
+            CardView cardView;
+            TextView textBy, textReview;
+            public CardViewHolder(View itemView) {
+                super(itemView);
+                cardView = (CardView) itemView.findViewById(R.id.cardReview);
+                textBy = (TextView) itemView.findViewById(R.id.textReviewBy);
+                textReview = (TextView) itemView.findViewById(R.id.textReview);
             }
         }
     }
