@@ -117,7 +117,6 @@ public class MovieData extends AppCompatActivity {
                 .appendQueryParameter("api_key", Keys.TMDB_KEY)
                 .appendQueryParameter("append_to_response", "videos" ).build();
         getMovieTrailers(uriTrailers.toString());
-        RecyclerItemTouchListener(recyclerViewTrailers);
 
         //to get review
         Uri uriReview = Uri.parse(BASE_URL).buildUpon().appendPath(contentMovie.details[0]).appendPath(REVIEW)
@@ -146,16 +145,21 @@ public class MovieData extends AppCompatActivity {
                     JSONObject movieData = new JSONObject(response.toString());
                     JSONArray result = movieData.getJSONObject("videos").getJSONArray("results");
                     int len = result.length();
-                    for (int i=0; i<len ; i++ ){
-                        contentMovie.trailerKey.add(result.getJSONObject(i).getString("key"));
-                        contentMovie.trailerName.add(result.getJSONObject(i).getString("name"));
-                        Log.d("MyApp", "Key:" + contentMovie.trailerKey.get(i) + " Name:" + contentMovie.trailerName.get(i));
+                    if(len==0){
+                        contentMovie.reviewBy.add("Opps!!!");
+                        contentMovie.reviewText.add("No Trailers Found");
+                    } else {
+                        RecyclerItemTouchListener(recyclerViewTrailers);
+                        for (int i = 0; i < len; i++) {
+                            contentMovie.trailerKey.add(result.getJSONObject(i).getString("key"));
+                            contentMovie.trailerName.add(result.getJSONObject(i).getString("name"));
+//                            Log.d("MyApp", "Key:" + contentMovie.trailerKey.get(i) + " Name:" + contentMovie.trailerName.get(i));
+                        }
                     }
-
                     rvAdapterTrailers = new RVAdapterTrailers(contentMovie.trailerName);
                     recyclerViewTrailers.setAdapter(rvAdapterTrailers);
                 } catch (JSONException e) {
-                    Log.e("MyApp","getMovieTrailers VolleyError" + e.toString() );
+                    Log.e("MyApp","getMovieTrailers JSONError" + e.toString() );
                     e.printStackTrace();
                 }
             }
@@ -163,7 +167,7 @@ public class MovieData extends AppCompatActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.d("MyApp", "Error: " + error.getMessage());
+                VolleyLog.d("MyApp", "TrailersError: " + error.getMessage());
             }
         });
 
@@ -182,6 +186,10 @@ public class MovieData extends AppCompatActivity {
                     JSONObject movieData = new JSONObject(response.toString());
                     JSONArray result = movieData.getJSONArray("results");
                     int len = result.length();
+                    if(len==0){
+                        contentMovie.reviewBy.add("Opps!!!");
+                        contentMovie.reviewText.add("No Review Found");
+                    }
                     for (int i=0; i<len ; i++ ){
                         contentMovie.reviewBy.add(result.getJSONObject(i).getString("author"));
                         contentMovie.reviewText.add(result.getJSONObject(i).getString("content"));
@@ -190,7 +198,7 @@ public class MovieData extends AppCompatActivity {
                     rvAdapterReview = new RVAdapterReview(contentMovie.reviewBy, contentMovie.reviewText);
                     recyclerViewReview.setAdapter(rvAdapterReview);
                 } catch (JSONException e) {
-                    Log.e("MyApp","getMovieReview VolleyError" + e.toString() );
+                    Log.e("MyApp","getMovieReview JSONError" + e.toString() );
                     e.printStackTrace();
                 }
             }
@@ -198,7 +206,7 @@ public class MovieData extends AppCompatActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.d("MyApp", "Error: " + error.getMessage());
+                VolleyLog.d("MyApp", "ReviewError: " + error.getMessage());
             }
         });
 
@@ -230,7 +238,6 @@ public class MovieData extends AppCompatActivity {
     public class RVAdapterTrailers extends RecyclerView.Adapter<RVAdapterTrailers.CardViewHolder> {
         private ArrayList<String> Name;
         public RVAdapterTrailers ( ArrayList<String> vName){
-            Log.v("MyApp", "RVAdapterTrailers");
             Name = vName;
         }
 
@@ -243,7 +250,6 @@ public class MovieData extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RVAdapterTrailers.CardViewHolder holder, int position) {
-            Log.v("MyApp", "RVAdapterTrailers onBindViewHolder" + position );
             holder.text.setText(Name.get(position));
             holder.image.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_play_circle_filled_black_24dp));
         }
@@ -270,7 +276,6 @@ public class MovieData extends AppCompatActivity {
         private ArrayList<String> Name, Review;
 
         public RVAdapterReview(ArrayList<String> vName, ArrayList<String> vReview){
-            Log.v("MyApp", "RVAdapterTrailers");
             Name = vName;
             Review = vReview;
         }
@@ -284,7 +289,6 @@ public class MovieData extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RVAdapterReview.CardViewHolder holder, int position) {
-            Log.v("MyApp", "RVAdapterReview onBindViewHolder" + position);
             holder.textBy.setText(Name.get(position));
             holder.textReview.setText(Review.get(position));
         }
